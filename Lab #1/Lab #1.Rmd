@@ -80,4 +80,23 @@ ls()
 
 username：WEI-XUAN-HU(huchi00057)\
 Repository is called GEOG-728-A
+![My github screenshot]("https://s1.yimg.com/rz/d/yahoo_frontpage_zh-Hant-TW_s_f_p_bestfit_frontpage_2x.png")
+# line under words.
+<u> Here is the practice of non-standard text formatting.<u>
+
+# Delete line under words.
+~~ And this example would try to show delete lines in sentence.~~
+
+# bigger border of words.
+** Those words would be stronger.**
+
+# List example：
++ text describing what you are doing - finished
++ multiple code chunks where you run actual R code - finished
++ text describing the output - finished
++ an image - Github Screenshot
++ text headers - # List example：
++ at least two examples of non-standard text formatting - line under words, Delete line, bigger border of words
++ one list - Here
+
 
