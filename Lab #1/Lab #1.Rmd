@@ -1,0 +1,83 @@
+---
+title: 'Lab #1'
+author: "WEI-XUAN HU"
+date: "2024-01-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# On my honor, as a student, I have neither given nor received unauthorized aid on this academic work.
+
+## Create a named numerical variable and a new vector of numbers.
+
+```{r}
+# assign a and b as numerical variable
+a <- 5
+b <- 17
+
+#  assign d as a vector of numbers
+d <- c(1, 2, 3, 4, 5)
+```
+
+## Report these produced data objects and then apply at least two functions to each.
+
+
+```{r}
+# sum would be a + b
+sum(a, b)
+
+# mean would be the average of a and be, that is (a+b)/2
+mean(a, b)
+
+# standard deviation of the vector d 
+sd(d)
+
+# max would the biggest number within the vector d 
+max(d)
+
+# lengh would be the number of elements in the vector d 
+length(d)
+```
+
+## Create a new data frame with three columns and rows.
+
+```{r tri_df_data, results='asis'}
+library(knitr)
+
+tri_df <- data.frame(name = c("SpongeBob", "Tom&Jerry", "Sesame Street"),
+                     character = c("Sandy", "Jerry", "Cookie Monster"),
+                     color = c("brown", "brown", "blue"),
+                     finger_num = c(5, 5, 2))
+kable(tri_df)
+```
+
+## Load a dataset from the R package and report summary information on the dataset and its structure.
+
+```{r}
+library(MASS)
+
+# Show the first few rows of the dataset
+head(ChickWeight)
+```
+
+## Use the ls() function to see that the objects are stored in your workspace. Clear your workspace using the rm(list = ls()) function. Then, run the ls() function to make sure the objects are gone.
+
+```{r}
+# the original objects include of a, b, d, tri_df
+ls()
+
+# then, remove them
+rm(list = ls())
+
+# show again to check what's objects inside, and it's empty now
+ls()
+```
+
+## Sign up for a free student account on github and include your github username in your Markdown file.
+
+username：WEI-XUAN-HU(huchi00057)\
+Repository is called GEOG-728-A
+

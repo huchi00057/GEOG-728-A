@@ -1,0 +1,94 @@
+---
+title: '0125'
+author: "WEI-XUAN HU"
+date: "2024-01-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Class Practice
+
+```{r}
+#install.packages("yarrr")
+
+library("yarrr")
+
+#?pirateplot
+
+pirateplot(formula = weight ~ Time, 
+           data = ChickWeight,
+           pal = "xmen")
+```
+
+```{r}
+
+IDs <- 1:50
+
+IDs <- seq(from = 0.5, to = 90, by = 2)
+
+obs <- rep(IDs, 3)
+
+obs <- rep(IDs, length.out = 200)
+
+obs <- rep(IDs, length.out = length(IDs)*5)
+
+pets <- c("cats", "dogs", "squirrels?")
+
+pets_rep <- rep(pets, length.out = 45)
+
+my_table <- cbind(IDs, pets_rep)
+
+head(my_table)
+
+```
+
+
+### Reading Data In
+
+butterfly data!!
+
+```{r}
+jn <- read.csv("journeynorth.csv")
+
+jn2 <- read.csv("journeynorth2.csv")
+
+str(jn)
+
+head(jn2)
+
+jn_full <-rbind(jn,jn2)
+
+jn_full["Number" >500]
+
+# Just show for Data, and it's the first column.
+jn_full[,1]
+
+# Show the first and sixth column, and they would be Date and Number.
+jn_full[,c(1,6)]
+
+# Show three colums：Data, Town, State.Province
+jn_full[, 1:3]
+
+# Error happens
+jn_full[,1,2,3]
+
+# 1/1/2020 Santa Cruz CA 37 -122 1
+jn_full[1, ]
+
+# 1/1/2020
+jn_full[1, 1]
+
+# Printed all data of Number
+jn_full[, "Number"]
+
+jn_full[jn_full$number > 5, ]
+
+# How many NULL in jn_full
+max(jn_full$Number, na.rm = T)
+View(jn_full[jn_full$Number >= 5, ])
+```
+
+
