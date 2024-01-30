@@ -1,0 +1,59 @@
+---
+title: 'Lab #2'
+author: "WEI-XUAN HU"
+date: "2024-01-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<font color="#FF0000">On my honor, as a student, I have neither given nor received unauthorized aid on this academic work.</font>
+
+## Data Preparation
+```{r}
+# Download the dataset
+install.packages("gapminder")
+install.packages("dplyr")
+install.packages("tidyverse")
+install.packages("ggplot2")
+
+library("gapminder")
+library("dplyr")
+library("tidyverse")
+library("ggplot2")
+data(gapminder)
+ 
+head(gapminder, 15)
+
+# 將數據按照國家名稱以字母順序相反的方式排序
+gm <- arrange(gapminder, desc(country))
+
+# 顯示排序後的前15筆資料
+head(gm, 15)
+
+
+```
+
+
+# 第一題的回答，問題是說第一個字母確實是Z，但第二個字母的排序並不是正確的
+
+
+## Calculate and display the mean, median, and standard deviation
+```{r}
+# output is the mean for the dataset.
+mean(gm$lifeExp)
+mean(gm$pop)
+mean(gm$gdpPercap)
+
+# output is the median for the dataset.
+median(gm.lifeExp)
+median(gm.pop)
+median(gm.gdpPercap)
+
+# output is the standard deviation of the dataset.
+sqrt(gm.lifeExp)
+sqrt(gm.pop)
+sqrt(gm.gdpPercap)
+```
