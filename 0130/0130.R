@@ -57,4 +57,52 @@ tot_all
 percent_manhat <- tot_manhat/tot_all*100
 percent_manhat
 
+jn_law <- subset(jn_full, jn_full$Town == "Lawrence")
+head(jn_law)
+length(jn_law)
 
+is.na(jn_full)
+
+head(is.na(jn_full))
+
+any(is.na(jn_full)) # output would be Boolean
+
+sum(is.na(jn_full))
+
+sapply(jn_full, function(x) sum(is.na(x)))
+
+jn_nona <- jn_full[!is.na(jn_full$Number), ]
+head(jn_nona)
+
+jn_gp <- jn_nona[jn_nona$State.Province %in% c("KS", "NE", "OK", "MO"), ]
+jn_gp <- jn_nona[jn_nona$State == "KS" | jn_nona$State == "NE", ]
+
+list_o_states <- c("KS", "NE", "OK", "MO")
+list_o_states <- jn_nona[jn_nona$State.Province %in% list_o_states, ]
+
+plot(jn_full)
+
+hist(jn_full$Number, breaks =100)
+
+hist(log(jn_full$Number, breaks = 100))
+
+plot(jn_nona$State.Province, jn_nona$Number)
+
+class(jn_nona$State.Province)
+
+plot(as.factor(jn_nona$State.Province), jn_nona$Number)
+
+plot(as.factor(jn_gp$State.Province), jn_gp$Number)
+
+
+library(tidyverse)
+
+glimpse(jn_full)
+
+jn_nona <- jn_full %>% filter(!is.na(Number))
+
+head(jn_nona)
+
+jn_su <- jn_full %>% select(Town, Number)
+
+head(jn_su)
