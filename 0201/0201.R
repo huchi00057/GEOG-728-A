@@ -48,6 +48,11 @@ ggplot(data = yield) +
                  color = "black", alpha = 0.6) +
   theme_minimal()
 
+ggplot(data = yield)+
+  geom_histogram(aes(x = Yield_kg_ha, fill = Crop),
+                 color = "black", alpha = 0.6) +
+  theme_minimal() +
+  scale_fill_brewer(palette = "RdYlBu")
 
                   
                   
