@@ -7,53 +7,290 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+Sys.setenv(LANG = "en")
 ```
 
-<font color="#FF0000">On my honor, as a student, I have neither given nor received unauthorized aid on this academic work.</font>
 
-## Data Preparation
+## 1.Data Preparation
+
 ```{r}
 # Download the dataset
 install.packages("gapminder")
-install.packages("dplyr")
-install.packages("tidyverse")
-install.packages("ggplot2")
 
 library("gapminder")
+
 library("dplyr")
-library("tidyverse")
+
 library("ggplot2")
+
 data(gapminder)
  
 head(gapminder, 15)
 
-# 將數據按照國家名稱以字母順序相反的方式排序
+# The data order countries in reverse alphabetical order 
 gm <- arrange(gapminder, desc(country))
 
-# 顯示排序後的前15筆資料
+# Display the first 15
 head(gm, 15)
 
 
 ```
 
+## Ordering problems in a different dataset
 
-# 第一題的回答，問題是說第一個字母確實是Z，但第二個字母的排序並不是正確的
+-   Non-Alphanumeric Data:
 
+If the dataset contains non-alphanumeric characters or special symbols, the reverse alphabetical order may not produce meaningful results.
 
-## Calculate and display the mean, median, and standard deviation
+-   Categorical vs. Numeric Data:
+
+If you're working with numeric data or other types of categorical data, ordering in reverse alphabetical order might not be relevant or meaningful.
+
+-   Missing Values:
+
+If there are missing values in the column used for ordering, they might affect the results.
+
+-   Data Type Mismatch:
+
+Ensure that the data type of the column used for ordering is appropriate for the ordering operation. For example, ordering strings vs. ordering numeric values may have different implications.
+
+## 2.Calculate and display the mean, median, and standard deviation
+
 ```{r}
 # output is the mean for the dataset.
-mean(gm$lifeExp)
-mean(gm$pop)
-mean(gm$gdpPercap)
+mean_lifeExp <- mean(gm$lifeExp)
+
+mean_pop <- mean(gm$pop)
+
+mean_gdpPercap <- mean(gm$gdpPercap)
+
+cat("mean of Life expectancy:", mean_lifeExp, "\n")
+
+cat("mean of Life Population:", mean_pop, "\n")
+
+cat("mean of Life GDPperCapita:", mean_gdpPercap, "\n")
+
 
 # output is the median for the dataset.
-median(gm.lifeExp)
-median(gm.pop)
-median(gm.gdpPercap)
+median_lifeExp <- median(gm$lifeExp)
+
+median_pop <- median(gm$pop)
+
+median_gdpPercap <- median(gm$gdpPercap)
+
+
+cat("median of Life expectancy:", median_lifeExp, "\n")
+
+cat("median of Life Population:", median_pop, "\n")
+
+cat("median of Life GDPperCapita:", median_gdpPercap, "\n")
+
 
 # output is the standard deviation of the dataset.
-sqrt(gm.lifeExp)
-sqrt(gm.pop)
-sqrt(gm.gdpPercap)
+sd_lifeExp <- sd(gm$lifeExp)
+
+sd_pop <- sd(gm$pop)
+
+sd_gdpPercap <- sd(gm$gdpPercap)
+
+
+cat("standard deviation  of Life expectancy:", sd_lifeExp, "\n")
+
+cat("standard deviation  of Life Population:", sd_pop, "\n")
+
+cat("standard deviation  of Life GDPperCapita:", sd_gdpPercap, "\n")
+
+```
+
+## 3.Calculate and display in a single dataframe the mean values for Life expectancy, Population, and GDPperCapita for each continent.
+
+```{r}
+# Filter the latest year for each country
+latest_data <- gapminder %>%
+  
+  group_by(country) %>%
+  
+  filter(year == max(year))
+
+
+# Calculate the mean values for each continent
+continent_means <- latest_data %>%
+  
+  group_by(continent) %>%
+  
+  summarise(
+    
+    Mean_LifeExpectancy = mean(lifeExp, na.rm = TRUE),
+    
+    Mean_Population = mean(pop, na.rm = TRUE),
+    
+    Mean_GDPperCapita = mean(gdpPercap, na.rm = TRUE)
+    
+  )
+
+# Print the resulting dataframe
+print(continent_means)
+
+```
+
+## 4.Create a scatter plot of the global average Life expectancy over time and display the first 5 records for the dataset used to build this plot. Customize the display of the plot to make it less blah.
+
+```{r}
+# Calculate global average life expectancy over time
+global_avg_life_expectancy <- gapminder %>%
+  
+  group_by(year) %>%
+  
+  summarise(Avg_LifeExpectancy = mean(lifeExp, na.rm = TRUE))
+
+
+# Create scatter plot
+
+scatter_plot <- ggplot(global_avg_life_expectancy, aes(x = year, y = Avg_LifeExpectancy)) +
+  
+  geom_point(size = 3, color = "steelblue") +
+  
+  geom_smooth(method = "loess", se = FALSE, color = "darkred", linewidth = 1) +
+  
+  labs(
+    
+    title = "Global Average Life Expectancy Over Time",
+    
+    x = "Year",
+    
+    y = "Average Life Expectancy"
+    
+  ) +
+  
+  theme_minimal()
+
+# Display the first 5 records of the dataset
+
+head(global_avg_life_expectancy, 5)
+
+# Display the scatter plot
+print(scatter_plot)
+
+```
+
+## 5.Pull in a dataset of your choice from the datasets package that has a dataframe structure (not sure what’s available, try ?datasets). Then examine the structure of the data including: class types, header information, and dimensions.
+
+```{r}
+# Load the iris dataset
+data(iris)
+
+# Display the structure of the dataset
+str(iris)
+
+# Display the first few rows of the dataset
+head(iris)
+
+# Display the dimensions of the dataset
+dim(iris)
+
+```
+
+## 6.Calculate general summary statistics for the dataset.
+
+```{r}
+# Calculate general summary statistics for the "iris" dataset
+summary(iris)
+
+```
+
+## 7.Calculate summary statistics for groups/subsets of the dataset (these groupings could be based on time period, species, location, etc…).
+
+```{r}
+# Calculate summary statistics for groups/subsets based on species
+summary_by_species <- iris %>%
+  
+  group_by(Species) %>%
+  
+  summarise(
+    
+    Mean_SepalLength = mean(Sepal.Length),
+    
+    Mean_SepalWidth = mean(Sepal.Width),
+    
+    Mean_PetalLength = mean(Petal.Length),
+    
+    Mean_PetalWidth = mean(Petal.Width),
+    
+    Median_SepalLength = median(Sepal.Length),
+    
+    Median_SepalWidth = median(Sepal.Width),
+    
+    Median_PetalLength = median(Petal.Length),
+    
+    Median_PetalWidth = median(Petal.Width),
+    
+    Min_SepalLength = min(Sepal.Length),
+    
+    Min_SepalWidth = min(Sepal.Width),
+    
+    Min_PetalLength = min(Petal.Length),
+    
+    Min_PetalWidth = min(Petal.Width),
+    
+    Max_SepalLength = max(Sepal.Length),
+    
+    Max_SepalWidth = max(Sepal.Width),
+    
+    Max_PetalLength = max(Petal.Length),
+    
+    Max_PetalWidth = max(Petal.Width)
+    
+  )
+
+# Print the summary statistics by species
+print(summary_by_species, width = Inf)
+
+```
+
+## 8.Create 2 plots of your choice, one showing grouped data and the other showing ungrouped data. Give each plot a title and descriptive x and y axis labels. Customize at least one graphic option (color, point type, line width, etc…) on these plots.
+
+```{r}
+# Plot 1: Grouped Data (Scatter plot)
+plot_grouped <- ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species)) +
+  
+  geom_point(size = 3, alpha = 0.8) +
+  
+  labs(
+    
+    title = "Scatter Plot of Sepal Dimensions (Grouped by Species)",
+    
+    x = "Sepal Length",
+    
+    y = "Sepal Width"
+    
+  ) +
+  
+  theme_minimal()
+
+
+# Plot 2: Ungrouped Data (Box plot)
+plot_ungrouped <- ggplot(iris, aes(x = Species, y = Petal.Length, fill = Species)) +
+  
+  geom_boxplot(width = 0.5, alpha = 0.8) +
+  
+  labs(
+    
+    title = "Box Plot of Petal Length (Ungrouped)",
+    
+    x = "Species",
+    
+    y = "Petal Length"
+    
+  ) +
+  
+  theme_minimal()
+
+
+# Display the plots
+print(plot_grouped)
+
+print(plot_ungrouped)
 ```

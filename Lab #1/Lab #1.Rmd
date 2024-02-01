@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# On my honor, as a student, I have neither given nor received unauthorized aid on this academic work.
+<font color="#FF0000">On my honor, as a student, I have neither given nor received unauthorized aid on this academic work.</font>
 
 ## Create a named numerical variable and a new vector of numbers.
 
@@ -24,22 +24,27 @@ d <- c(1, 2, 3, 4, 5)
 
 ## Report these produced data objects and then apply at least two functions to each.
 
-
 ```{r}
-# sum would be a + b
-sum(a, b)
+# Sum would be a + b
+sum_result <- sum(a, b)
+print(paste("Sum of a and b:", sum_result))
 
-# mean would be the average of a and be, that is (a+b)/2
-mean(a, b)
+# Mean would be the average of a and b, that is (a+b)/2
+mean_result <- mean(c(a, b))
+print(paste("Mean of a and b:", mean_result))
 
-# standard deviation of the vector d 
-sd(d)
+# Standard deviation of the vector d 
+sd_result <- sd(d)
+print(paste("Standard deviation of d:", sd_result))
 
-# max would the biggest number within the vector d 
-max(d)
+# Max would be the biggest number within the vector d 
+max_result <- max(d)
+print(paste("Maximum value in d:", max_result))
 
-# lengh would be the number of elements in the vector d 
-length(d)
+# Length would be the number of elements in the vector d 
+length_result <- length(d)
+print(paste("Length of d:", length_result))
+
 ```
 
 ## Create a new data frame with three columns and rows.
@@ -60,6 +65,12 @@ kable(tri_df)
 library(MASS)
 
 # Show the first few rows of the dataset
+# And features conclude weight, time , chick and diet.
+# There are different 50 chicks, and recorded everyday.
+# We can use this data to observe 4 different type of diet if there is any impacts on them.
+# Time is how long been chick born.
+# Chick is the number of them.
+# There are 4 types of diet.
 head(ChickWeight)
 ```
 
@@ -79,24 +90,26 @@ ls()
 ## Sign up for a free student account on github and include your github username in your Markdown file.
 
 username：WEI-XUAN-HU(huchi00057)\
-Repository is called GEOG-728-A
-![My github screenshot]("https://s1.yimg.com/rz/d/yahoo_frontpage_zh-Hant-TW_s_f_p_bestfit_frontpage_2x.png")
-# line under words.
-<u> Here is the practice of non-standard text formatting.<u>
+Repository is called GEOG-728-A \
+
+![My github screenshot](https://i.imgur.com/gJIihXE.png) \
+
+
+# Line under words.
+<u>Here is the practice of non-standard text formatting.</u>
 
 # Delete line under words.
-~~ And this example would try to show delete lines in sentence.~~
+~~And this example would try to show delete lines in a sentence.~~
 
-# bigger border of words.
-** Those words would be stronger.**
+# Bigger border of words.
+**Those words would be stronger.**
 
 # List example：
-+ text describing what you are doing - finished
-+ multiple code chunks where you run actual R code - finished
-+ text describing the output - finished
-+ an image - Github Screenshot
-+ text headers - # List example：
-+ at least two examples of non-standard text formatting - line under words, Delete line, bigger border of words
-+ one list - Here
 
-
+-   text describing what you are doing - finished
+-   multiple code chunks where you run actual R code - finished
+-   text describing the output - finished
+-   an image - Github Screenshot
+-   text headers - \# List example：
+-   at least two examples of non-standard text formatting - line under words, Delete line, bigger border of words
+-   one list - Here
