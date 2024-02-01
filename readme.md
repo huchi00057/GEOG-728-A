@@ -5,7 +5,7 @@ These are my assignments:
 | Assignments           | Deadline   | Upload Date |
 |-----------------------|------------|-------------|
 | Lab #1                | 2024/01/25 | 2024/01/25  |
-| Lab #2                | 2024/02/01 |             |
+| Lab #2                | 2024/02/01 | 2024/02/01  |
 | Lab #3                | 2024/02/08 |             |
 | Lab #4                | 2024/02/15 |             |
 | Project Proposal     | 2024/02/22 |             |
