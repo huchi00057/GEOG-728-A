@@ -44,8 +44,8 @@ ggplot(data = yield) +
   geom_histogram((aes(x = Yield_kg_ha)))
 
 ggplot(data = yield) +
-  geom_histogram(aes(x = Yield_kg_ha, fill = "#998ec3"), #紫色柱狀圖
-                 color = "black", alpha = 0.6) +
+  geom_histogram(aes(x = Yield_kg_ha), #紫色柱狀圖
+                     fill = "#998ec3", color = "black", alpha = 0.6) +
   theme_minimal()
 
 ggplot(data = yield)+

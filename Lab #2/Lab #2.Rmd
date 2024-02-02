@@ -8,17 +8,22 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+# There are some problems that I could not download the dataset successfully. Thus, we need to add this ccommand.
 options(repos = c(CRAN = "https://cloud.r-project.org"))
 
+# To make sure all outputs are english, rather than Mandarin.
 Sys.setenv(LANG = "en")
 ```
-
 
 ## 1.Data Preparation
 
 ```{r}
-# Download the dataset
+# Download the package and dataset
 install.packages("gapminder")
+
+install.packages("dplyr")
+
+install.packages("ggplot2")
 
 library("gapminder")
 
@@ -36,26 +41,17 @@ gm <- arrange(gapminder, desc(country))
 # Display the first 15
 head(gm, 15)
 
-
 ```
 
 ## Ordering problems in a different dataset
 
--   Non-Alphanumeric Data:
+1.  Non-Alphanumeric Data:
 
-If the dataset contains non-alphanumeric characters or special symbols, the reverse alphabetical order may not produce meaningful results.
+If the data are not alphanumeric characters like special symbols or other language, the reverse order would not work.
 
--   Categorical vs. Numeric Data:
-
-If you're working with numeric data or other types of categorical data, ordering in reverse alphabetical order might not be relevant or meaningful.
-
--   Missing Values:
+2.  Missing Values:
 
 If there are missing values in the column used for ordering, they might affect the results.
-
--   Data Type Mismatch:
-
-Ensure that the data type of the column used for ordering is appropriate for the ordering operation. For example, ordering strings vs. ordering numeric values may have different implications.
 
 ## 2.Calculate and display the mean, median, and standard deviation
 
@@ -108,26 +104,14 @@ cat("standard deviation  of Life GDPperCapita:", sd_gdpPercap, "\n")
 ## 3.Calculate and display in a single dataframe the mean values for Life expectancy, Population, and GDPperCapita for each continent.
 
 ```{r}
-# Filter the latest year for each country
-latest_data <- gapminder %>%
-  
-  group_by(country) %>%
-  
-  filter(year == max(year))
-
-
 # Calculate the mean values for each continent
-continent_means <- latest_data %>%
+continent_means <- gapminder %>%
   
   group_by(continent) %>%
   
   summarise(
     
-    Mean_LifeExpectancy = mean(lifeExp, na.rm = TRUE),
-    
-    Mean_Population = mean(pop, na.rm = TRUE),
-    
-    Mean_GDPperCapita = mean(gdpPercap, na.rm = TRUE)
+    mean_lifeExp, mean_pop, mean_gdpPercap
     
   )
 
