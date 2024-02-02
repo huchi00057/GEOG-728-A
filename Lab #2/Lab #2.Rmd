@@ -8,7 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-# There are some problems that I could not download the dataset successfully. Thus, we need to add this ccommand.
+# There are some problems that I could not download the dataset successfully. Thus, we need to add this command.
 options(repos = c(CRAN = "https://cloud.r-project.org"))
 
 # To make sure all outputs are english, rather than Mandarin.
@@ -38,7 +38,7 @@ head(gapminder, 15)
 # The data order countries in reverse alphabetical order 
 gm <- arrange(gapminder, desc(country))
 
-# Display the first 15
+# Show the first 15
 head(gm, 15)
 
 ```
@@ -115,7 +115,7 @@ continent_means <- gapminder %>%
     
   )
 
-# Print the resulting dataframe
+# print the resulting dataframe
 print(continent_means)
 
 ```
@@ -151,11 +151,11 @@ scatter_plot <- ggplot(global_avg_life_expectancy, aes(x = year, y = Avg_LifeExp
   
   theme_minimal()
 
-# Display the first 5 records of the dataset
+# Show the first 5 records of the dataset
 
 head(global_avg_life_expectancy, 5)
 
-# Display the scatter plot
+# Show the scatter plot
 print(scatter_plot)
 
 ```
@@ -163,16 +163,16 @@ print(scatter_plot)
 ## 5.Pull in a dataset of your choice from the datasets package that has a dataframe structure (not sure what’s available, try ?datasets). Then examine the structure of the data including: class types, header information, and dimensions.
 
 ```{r}
-# Load the iris dataset
+# Load "Iris" dataset
 data(iris)
 
-# Display the structure of the dataset
+# Show the structure of the dataset
 str(iris)
 
-# Display the first few rows of the dataset
+# Show the first few rows of the dataset
 head(iris)
 
-# Display the dimensions of the dataset
+# Show the dimensions of the dataset
 dim(iris)
 
 ```
@@ -180,7 +180,7 @@ dim(iris)
 ## 6.Calculate general summary statistics for the dataset.
 
 ```{r}
-# Calculate general summary statistics for the "iris" dataset
+# Calculate general summary statistics for the "Iris" dataset
 summary(iris)
 
 ```
@@ -230,6 +230,7 @@ summary_by_species <- iris %>%
   )
 
 # Print the summary statistics by species
+# No limitation of output length
 print(summary_by_species, width = Inf)
 
 ```
@@ -252,7 +253,7 @@ plot_grouped <- ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Spec
     
   ) +
   
-  theme_minimal()
+  theme_minimal() 
 
 
 # Plot 2: Ungrouped Data (Box plot)
@@ -270,10 +271,10 @@ plot_ungrouped <- ggplot(iris, aes(x = Species, y = Petal.Length, fill = Species
     
   ) +
   
-  theme_minimal()
+  theme_minimal() 
 
 
-# Display the plots
+# Show the plots
 print(plot_grouped)
 
 print(plot_ungrouped)
