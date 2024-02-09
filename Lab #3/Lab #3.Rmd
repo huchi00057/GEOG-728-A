@@ -1,0 +1,281 @@
+---
+title: 'Lab #3'
+author: "WEI-XUAN HU"
+date: "2024-02-05"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## 0. Download packages
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# There are some problems that I could not download the dataset successfully. Thus, we need to add this command.
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+# To make sure all outputs are english, rather than Mandarin.
+Sys.setenv(LANG = "en")
+```
+
+```{r}
+# Download the package
+
+install.packages("dplyr")
+
+install.packages("ggplot2")
+
+library("dplyr")
+
+library("ggplot2")
+
+```
+
+## 1.Data Preparation
+
+```{r}
+# Import Data (FoodAtlas.csv)
+food_data <- read.csv("FoodAtlas.csv")
+
+# show only the first 24 
+# head(food_data, 24)
+
+# show only last 12 variables
+# tail(food_data,12)
+
+# For keep only the first 24 and last 12 variables.
+
+selected_variables <- c(colnames(food_data)[1:24], colnames(food_data)[(length(colnames(food_data)) - 11):length(colnames(food_data))])
+
+# reduced dataset is named as reduces_data
+reduced_data <- food_data[, selected_variables]
+                  
+```
+
+## 2.Examine this reduced dataset and decribe their types.
+
+```{r}
+## Food_Data is a Data Frame.
+# What's the data type
+class(food_data)
+
+## And the object's type is list
+typeof(food_data)
+
+# Check for the reduced data
+str(reduced_data)
+
+# Decribe the reduced data
+summary(reduced_data)
+```
+
+## 3. Make a new data object for the state of Kansas with specific features.
+
+```{r}
+
+## Make a new data object named "ks" for the state of Kansas.
+ks_data <- subset(food_data, State == "Kansas")
+
+head(ks_data)
+
+# Keep 6 specific features
+ks_data <- select(ks_data, County, POP2010, LAhalfand10, MedianFamilyIncome, TractSNAP, TractKids )
+
+head(ks_data)
+
+# super version
+# ks_data <- food_data[food_data$State == "Kansas", c("County", "POP2010", "LAhalfand10", "MedianFamilyIncome", "TractSNAP", "TractKids")]
+
+```
+
+## 4. Create a plot to illustrate the differences in across counties in Kansas.
+
+```{r}
+
+# Using ggplot2 to draw a boxplot.
+ggplot(ks_data, aes(x = County, y = MedianFamilyIncome)) +
+  geom_boxplot() +
+  coord_flip() +
+  labs(x = "County", y = "Median Family Income", title = "Income Distribution Across Counties in Kansas")
+
+# save the image to check detail
+ggsave("4.income_distribution_plot.png", plot = last_plot(), width = 20, height = 16, dpi = 300)
+```
+
+## From the boxplot image, we can find Johnson own the greatest variation in income.
+
+## Are there significant differences across counties?
+
+Answer：1.Variation in Median Income: The middle of boxplot means the
+median income, and different income exists in counties. Some of them are
+high, others are low.
+
+Answer：2.Variation in Interquartile Range: The boxes dedicate the
+interquartile range, as well as the middle 50% of incomes. There are
+huge differences in the interquartile range across difference counties,
+meaning differences in income distribution.
+
+```{r}
+# Calculate the range of Median Family Income
+county_variation <- aggregate(MedianFamilyIncome ~ County, data = ks_data, FUN = function(x) var(x, na.rm = TRUE))
+
+# Find the the greatest variation in income to double check the viewpoint.
+county_max_variation <- county_variation[which.max(county_variation$MedianFamilyIncome), ]
+
+## Which counties have the greatest variation in income?
+print(paste("Answer：County with the greatest variation in income:", county_max_variation$County))
+
+```
+
+## 5. How compares across locations with low (or not) food accessibility ().
+
+```{r}
+# Compare using both basic descriptive statistics and graphical representation
+summary(ks_data$MedianFamilyIncome[ks_data$LAhalfand10 == 1])  
+summary(ks_data$MedianFamilyIncome[ks_data$LAhalfand10 == 0])  
+
+# Using ggplot2 to compare
+ggplot(ks_data, aes(x = MedianFamilyIncome, fill = factor(LAhalfand10))) +
+  geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
+  labs(x = "Median Family Income", y = "Count", fill = "Low Food Accessibility") +
+  ggtitle("Distribution of Median Family Income by Food Accessibility") +
+  scale_fill_manual(values = c("blue", "red"))
+
+```
+
+## Summary Statistics:
+
+-   For areas with low food accessibility:
+
+1.  Minimum Median Family Income: 0
+2.  Maximum Median Family Income: 225,739
+3.  Median Median Family Income: $59,107
+4.  Mean Median Family Income: $63,992
+
+-   For areas with better food
+
+1.  Minimum Median Family Income: 0
+2.  Maximum Median Family Income: 117,703
+3.  Median Median Family Income: $63,125
+4.  Mean Median Family Income: $62,653
+
+## Summary histogram:
+
+-   Both of the classes (LAhalfand10 == 0 or 1), there is no data located at approximately 200000 in Median Family Income.
+    And most of data concentrate within 25000-125000.
+
+-   The histogram for areas with low food accessibility (LAhalfand10 ==
+    1) shows a slightly right-skewed distribution, with a peak around
+    the median value and a long tail to the right. The histogram for
+    areas with better food accessibility (LAhalfand10 == 0) also
+    exhibits a slightly right-skewed distribution, with a peak around
+    the median value, but the tail to the right is less pronounced
+    compared to areas with low food accessibility.
+
+## 6. Using other variable to compare between counties with TractKids
+
+```{r}
+# Compare using both basic descriptive statistics and graphical representation
+summary_median_income_low_access <- summary(ks_data$MedianFamilyIncome[ks_data$LAhalfand10 == 1])
+summary_median_income_regular_access <- summary(ks_data$MedianFamilyIncome[ks_data$LAhalfand10 == 0])
+
+# Using ggplot2 to compare TractKids
+ggplot(ks_data, aes(x = TractKids, fill = factor(LAhalfand10))) +
+  geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
+  labs(x = "TractKids", y = "Count", fill = "Food Accessibility") +
+  ggtitle("Distribution of TractKids by Food Accessibility") +
+  scale_fill_manual(values = c("blue", "red"))
+
+
+summary_median_income_low_access
+summary_median_income_regular_access
+```
+
+## Summary Statistics:
+
+-   For areas with low food accessibility (LAhalfand10 == 1):
+
+1.  Minimum Median Family Income: $0
+2.  Median Median Family Income: $59,107
+3.  Mean Median Family Income: $63,992
+4.  Maximum Median Family Income: $225,739
+
+-   For areas with regular food accessibility (LAhalfand10 == 0):
+
+1.  Minimum Median Family Income: $0
+2.  Median Median Family Income: $63,125
+3.  Mean Median Family Income: $62,653
+4.  Maximum Median Family Income: $117,703
+
+## Summary histogram:
+
+-   Apparently, the count of food accessibility == 1 is higher than food accessibility == 0. Second, we can  see that for all countries in Kansas, the median family income mostly concentrates in lower intervals. This indicates that the majority of counties have relatively lower median family incomes.
+
+## 7. Explanation of Kansas dataset relate to food accessibility and food assistance (SNAP).
+
+
+```{r}
+# Compare using both basic descriptive statistics and graphical representation
+summary(ks_data$TractSNAP[ks_data$LAhalfand10 == 1])  
+summary(ks_data$TractSNAP[ks_data$LAhalfand10 == 0])  
+
+# Using ggplot2 to compare
+ggplot(ks_data, aes(x = TractSNAP, fill = factor(LAhalfand10))) +
+  geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
+  labs(x = "SNAP Recipients", y = "Count", fill = "Low Food Accessibility") +
+  ggtitle("Distribution of SNAP Recipients by Food Accessibility") +
+  scale_fill_manual(values = c("blue", "red"))
+```
+
+## Summary Statistics:
+
+-   For areas with low food accessibility (LAhalfand10 == 1):
+
+1.  Minimum number of SNAP recipients: 0
+2.  Maximum number of SNAP recipients: 686
+3.  Median number of SNAP recipients: 113
+4.  Mean number of SNAP recipients: 146.4
+
+-   For areas with regular food accessibility (LAhalfand10 == 0):
+
+1.  Minimum number of SNAP recipients: 0
+2.  Maximum number of SNAP recipients: 509
+3.  Median number of SNAP recipients: 93
+4.  Mean number of SNAP recipients: 109.3
+
+## Summary histogram:
+
+-   Obviouly, the count of LAhalfand10 == 1 is higher then LAhalfand10 == 0 significantly. Secondly, most distribution         concentrate in 0-400.
+
+
+## 8. Use reduced_data created in step 1 and create a state-by-state summary of each variable.
+
+state_summary <- reduced_data %>%
+  group_by(State) %>%
+  summarise_all(list(mean = mean, median = median, sd = sd, min = min, max = max))
+  
+# Display the state-by-state summary
+print(state_summary)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
