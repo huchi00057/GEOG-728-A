@@ -1,0 +1,207 @@
+---
+title: 'Lab #4'
+author: "WEI-XUAN HU"
+date: "2024-02-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# There are some problems that I could not download the dataset successfully. Thus, we need to add this command.
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+# To make sure all outputs are english, rather than Mandarin.
+Sys.setenv(LANG = "en")
+```
+
+## 0. Read the data (sheet = Table 1) and install the requirements.
+
+```{r}
+install.packages("openxlsx")
+install.packages("tidyverse")
+
+library(openxlsx)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+un <- read.xlsx("UN_MigrantStockByOriginAndDestination_2019.xlsx", sheet = "Table 1")
+
+dim(un)
+```
+
+## 1. creative cleaning
+
+```{r}
+# The data in the first six columns are irrelevant and need to be removed.
+un_1 <- un[-c(1:6), ]
+
+# Set the values in the column 'Country or area of origin' to blank. 
+un_1[un_1 == "Country or area of origin"] <- NA
+
+# Replace NA as blank in the first and secound rows to make the following merge successful.
+un_1[1, ] <- ifelse(is.na(un_1[1, ]), "", un_1[1, ])
+un_1[2, ] <- ifelse(is.na(un_1[2, ]), "", un_1[2, ])
+
+# Merge the first column and the second column and modify them into attribute fields.
+un_1[1, ] <- paste(un_1[1, ], un_1[2, ])
+un_1 <- un_1[-2,]
+
+names(un_1) <- un_1[1, ]
+
+# Delete the first row.
+un_1 <- un_1[-1, ]
+
+# Remove the blank in column names. Exanple："Year " to "Year". 
+names(un_1) <- gsub(" ", "", names(un_1), fixed = TRUE)
+
+# Rename two columns to better name
+un_1 <- rename(un_1, Major_Area = "Majorarea,region,countryorareaofdestination")
+
+
+# check the data
+head(un_1)
+dim(un_1)
+```
+## 2. Create new column named Regions to make data easy to explore.
+
+### Because column "Major_Area’ contains heterogeneous data, we need to create new columns with region information for each country.
+
+```{r}
+# Defines regions
+# ID = code for a region
+Regions <- data.frame( ID=c(910, 911, 913, 914, 912, 922, 5500, 5501, 906, 920, 915, 916, 931, 927, 928, 954, 957, 923, 924, 925, 926, 918), Region = c("E_Africa", "Mid_Africa", "S_Africa", "W_Africa", "N_Africa", "W_Asia", "C_Asia", "S_Asia", "E_Asia", "SE_Asia", "Caribbean", "C_America", "S_America", "Australia_NZ", "Melanesia", "Micronesia", "Polynesia", "E_Europe", "N_Europe", "S_Europe", "W_Europe", "N_America")) 
+
+# country codes for each region in "Region"
+Regions$Code = list(c(108, 174, 262, 232, 231, 404, 450, 454, 480, 175, 508, 638, 646, 690, 706, 728, 800, 834, 894, 716),
+        c(24, 120, 140, 148, 178, 180, 226, 266, 678), 
+        c(72, 748, 426, 516, 710), 
+        c(204, 854, 132, 384, 270, 288, 324, 624, 430, 466, 478, 562, 566, 654, 686, 694, 768), 
+        c(12, 818, 434, 504, 729, 788, 732), 
+        c(51, 31, 48, 196, 268, 368, 376, 400, 414, 422, 512, 634, 682, 275, 760, 792, 784, 887), 
+        c(398, 417, 762, 795, 860), 
+        c(4, 50, 64, 356, 364, 462, 524, 586, 144), 
+        c(156, 344, 446, 408, 392, 496, 410), 
+        c(96, 116, 360, 418, 458, 104, 608, 702, 764, 626, 704), 
+        c(660, 28, 533, 44, 52, 92, 535, 136, 192, 531, 212, 214, 308, 312, 332, 388, 474, 500, 630, 659, 662, 670, 534, 780, 796, 850), 
+        c(84, 188, 222, 320, 340, 484, 558, 591), 
+        c(32, 68, 76, 152, 170, 218, 238, 254, 328, 600, 604, 740, 858, 862), 
+        c(36, 554), 
+        c(242, 540, 598, 90, 548), 
+        c(316, 296, 584, 583, 520, 580, 585), 
+        c(16, 184, 258, 570, 882, 772, 776, 798, 876), 
+        c(112, 100, 203, 348, 616, 498, 642, 643, 703, 804), 
+        c(830, 208, 233, 234, 246, 352, 372, 833, 428, 440, 578, 752, 826), 
+        c(8, 20, 70, 191, 292, 300, 336, 380, 470, 499, 807, 620, 674, 688, 705, 724),
+        c(40, 56, 250, 276, 438, 442, 492, 528, 756), 
+        c(60, 124, 304, 666, 840)) 
+
+# Unnest the lists to give each value a row
+Regions <- Regions %>% 
+  unnest(Code)
+
+# Code in Regions is Double while Code in un_1 is character.
+# They are in different data type, so we need to transfer it.
+Regions <- Regions %>% 
+  mutate(Code = as.character(Code))
+
+head(Regions)
+
+# Add this data to un_1
+un_2 <- left_join( un_1, Regions, by='Code')
+
+```
+## 3. Make data more tidy.
+
+### Until now, I think this data is not tidy enough because there is still NA in important features. Thus we need to figure out these NA in Column Region or ID.
+
+```{r}
+# filter out all rows that have 'NA' for Region or ID, since these have no match to the countries that we are interested in plotting
+un_3 <- un_2 %>% filter(!is.na(Region))
+
+# use pivot_longer to elongate the data.frame such that each observation for an origin country has a row entry with each destination. Then, since we just want to plot countries, use filter() toremove rows without a matched region code
+un_3 <- un_3 %>% pivot_longer(Afghanistan:Zimbabwe, names_to= "origin_country", values_to= "migrants" ) %>% filter( !is.na(migrants) & migrants!='')
+```
+
+### Check data structure
+```{r}
+str(un_3)
+str(Regions)
+
+```
+In data un_3, we can find that there are enormous NA in attributes Notes.
+It is a description about how to get the data. Like, B mean that estimates were derived from data on the foreign-born population; C indicates that estimates were derived from data on foreign citizens.
+
+But, we will not use that to make diagram, would extract the columns need to be explored in Regions data frame instead.
+
+
+## 4. Visualization the important data distributions in your dataset and describe.
+
+```{r}
+un_plot <- un_3 %>% select( Major_Area, origin_country, migrants) 
+
+#format the data as numeric
+un_plot$migrants <- as.numeric(gsub(",","",un_plot$migrants))
+
+
+# Create the image to explore.
+img <- ggplot(data = un_plot, aes(x = Major_Area, y = migrants)) +geom_bar(stat = "identity", fill = "skyblue") +
+  labs(x = "Destination Area", y = "Number of Migrants", title = "Number of Migrants by Destination Area") +
+  theme(axis.text.x = element_text(size = 3, angle = 90, hjust = 1)) 
+
+img
+# Save the image
+ggsave("Number of Migrants by Destination Area.png", plot = img, width = 10, height = 6, dpi = 300)
+```
+
+In the chart, it's evident that the United States of America has the highest number of migrants without a doubt. In theory, this value represents the population of the local residents, so it should have been considered for removal during the data processing stage. 
+Following that, the regions with the next highest numbers of migrants are Federation, Germany, and Saudi Arabia. While exploring the sorted quantities, it becomes apparent that this type of chart should be sorted by quantity rather than alphabetically.
+
+## 5. Recereate the diagram
+
+```{r}
+# Sort the data in descending order based on the "migrants" column.
+un_plot2 <- un_3 %>% 
+  select(Region, origin_country, migrants) %>%
+  arrange(desc(migrants))
+
+# Format the data as numeric.
+un_plot2$migrants <- as.numeric(gsub(",", "", un_plot2$migrants))
+
+# Recreate the plot
+img2 <- ggplot(data = un_plot2, aes(x = reorder(Region, -migrants), y = migrants)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(x = "Destination Area", y = "Number of Migrants", title = "Number of Migrants by Destination Area2") +
+  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1)) 
+
+img2
+# save it again.
+ggsave("Number of Migrants by Destination Area2.png", plot = img2, width = 10, height = 6, dpi = 300)
+
+```
+
+If we analyze the distribution by continent instead of individual countries, we can observe that North America has the highest number of migrants, followed by Western Asia, Western Europe, and Eastern Europe.
+
+
+## 5. Summary the diagrams
+
+From the diagram2, it can be observed that the continent with the highest number of migrants is North America, followed by Western Asia, Western Europe, and Eastern Europe. 
+
+For a more detailed analysis of which country has the highest number of migrants, it can be seen from Figure 1 that the United States of America has the highest number, followed by the Federation, Germany, and Saudi Arabia. Therefore, analyzing from different attributes reveals different results.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
