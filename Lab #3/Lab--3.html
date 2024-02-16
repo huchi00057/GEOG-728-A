@@ -373,14 +373,14 @@ install.packages(&quot;dplyr&quot;)</code></pre>
 <pre><code>## Warning: restored &#39;dplyr&#39;</code></pre>
 <pre><code>## 
 ## The downloaded binary packages are in
-##  C:\Users\huchi\AppData\Local\Temp\RtmpAJAC2c\downloaded_packages</code></pre>
+##  C:\Users\huchi\AppData\Local\Temp\RtmpE3RYCK\downloaded_packages</code></pre>
 <pre class="r"><code>install.packages(&quot;ggplot2&quot;)</code></pre>
 <pre><code>## Installing package into &#39;C:/Users/huchi/AppData/Local/R/win-library/4.3&#39;
 ## (as &#39;lib&#39; is unspecified)</code></pre>
 <pre><code>## package &#39;ggplot2&#39; successfully unpacked and MD5 sums checked
 ## 
 ## The downloaded binary packages are in
-##  C:\Users\huchi\AppData\Local\Temp\RtmpAJAC2c\downloaded_packages</code></pre>
+##  C:\Users\huchi\AppData\Local\Temp\RtmpE3RYCK\downloaded_packages</code></pre>
 <pre class="r"><code>library(&quot;dplyr&quot;)</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;dplyr&#39;</code></pre>
@@ -408,7 +408,52 @@ food_data &lt;- read.csv(&quot;FoodAtlas.csv&quot;)
 selected_variables &lt;- c(colnames(food_data)[1:24], colnames(food_data)[(length(colnames(food_data)) - 11):length(colnames(food_data))])
 
 # reduced dataset is named as reduces_data
-reduced_data &lt;- food_data[, selected_variables]</code></pre>
+reduced_data &lt;- food_data[, selected_variables]
+
+# show the data      
+head(reduced_data)            </code></pre>
+<pre><code>##   CensusTract   State  County Urban POP2010 OHU2010 GroupQuartersFlag NUMGQTRS
+## 1  1001020100 Alabama Autauga     1    1912     693                 0        0
+## 2  1001020200 Alabama Autauga     1    2170     743                 0      181
+## 3  1001020300 Alabama Autauga     1    3373    1256                 0        0
+## 4  1001020400 Alabama Autauga     1    4386    1722                 0        0
+## 5  1001020500 Alabama Autauga     1   10766    4082                 0      181
+## 6  1001020600 Alabama Autauga     1    3668    1311                 0        0
+##    PCTGQTRS LILATracts_1And10 LILATracts_halfAnd10 LILATracts_1And20
+## 1 0.0000000                 0                    0                 0
+## 2 0.0834101                 0                    0                 0
+## 3 0.0000000                 0                    0                 0
+## 4 0.0000000                 0                    0                 0
+## 5 0.0168122                 0                    0                 0
+## 6 0.0000000                 0                    0                 0
+##   LILATracts_Vehicle HUNVFlag LowIncomeTracts PovertyRate MedianFamilyIncome
+## 1                  0        0               0        10.0              74750
+## 2                  0        0               0        18.2              51875
+## 3                  0        0               0        19.1              52905
+## 4                  0        0               0         3.3              68079
+## 5                  0        1               0         8.5              77819
+## 6                  0        0               0        14.1              67218
+##   LA1and10 LAhalfand10 LA1and20 LATracts_half LATracts1 LATracts10 LATracts20
+## 1        1           1        1             1         1          0          0
+## 2        0           1        0             1         0          0          0
+## 3        1           1        1             1         1          0          0
+## 4        1           1        1             1         1          0          0
+## 5        1           1        1             1         1          0          0
+## 6        1           1        1             1         1          0          0
+##   TractLOWI TractKids TractSeniors TractWhite TractBlack TractAsian TractNHOPI
+## 1       448       507          221       1622        217         14          0
+## 2       763       606          214        888       1217          5          0
+## 3      1578       894          439       2576        647         17          5
+## 4      1241      1015          904       4086        193         18          4
+## 5      2692      3162         1126       8666       1437        296          9
+## 6      1504      1008          411       2751        740          9          1
+##   TractAIAN TractOMultir TractHispanic TractHUNV TractSNAP
+## 1        14           45            44        26       112
+## 2         5           55            75        87       202
+## 3        11          117            87       108       120
+## 4        11           74            85        19        82
+## 5        48          310           355       198       488
+## 6        10          157           176        49       118</code></pre>
 </div>
 <div id="examine-this-reduced-dataset-and-decribe-their-types." class="section level2">
 <h2>2.Examine this reduced dataset and decribe their types.</h2>
