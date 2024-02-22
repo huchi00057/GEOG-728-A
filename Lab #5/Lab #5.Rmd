@@ -1,0 +1,110 @@
+---
+title: 'Lab #5'
+author: "WEI-XUAN HU"
+date: "2024-02-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# There are some problems that I could not download the dataset successfully. Thus, we need to add this command.
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+# To make sure all outputs are english, rather than Mandarin.
+Sys.setenv(LANG = "en")
+```
+
+#  {.tabset}
+
+## 0.
+### Install packages required.
+
+```{r}
+install.packages("tidyverse")
+install.packages("sf")
+install.packages("spData")
+install.packages("ggplot2")
+
+
+library(tidyverse)
+library(sf)
+library(spData)
+library(ggplot2)
+```
+
+## 1.
+### Load the dataset and combine them
+
+```{r}
+
+data1 <- world
+data2 <- worldbank_df
+
+str(data1)
+head(data1)
+
+str(data2)
+head(data2)
+
+combined_data <- merge(data1, data2)
+
+str(combined_data)
+
+```
+
+We can see that data1 is in sf format and data2 is in tibble format. When these two are merged, the resulting format will be a data frame. This is because data1 contains a column 'geom' in sf format, while data2 does not have any 'geom' attribute, and none of the attributes in data2 belong to sf format. Therefore, the combined_data will not be in sf format.
+
+
+## 2.
+### Make some basic (non-spatial) plots to explore differences in urban population and literacy across countries.
+
+```{r}
+ggplot(combined_data, aes(x = urban_pop, y = literacy)) +
+  geom_point() +
+  labs(x = "Urban Population", y = "Literacy Rate", title = "Urban Population vs. Literacy Rate")
+```
+
+## 3.
+### Now make some maps to explore urban population and literacy across countries.
+
+```{r}
+# Plot urban population on a map
+plot(combined_data["urban_pop"], main = "Urban Population Across Countries")
+
+# Plot literacy rate on a map
+plot(combined_data["literacy"], main = "Literacy Rate Across Countries")
+
+```
+
+## 4.
+### Make some basic (non-spatial) plots to explore differences in urban population and literacy across continents.
+
+```{r}
+ggplot(combined_data, aes(x = urban_pop, y = literacy, color = region_un)) +
+  geom_point() +
+  labs(x = "Urban Population", y = "Literacy Rate", title = "Urban Population vs. Literacy Rate Across Continents")
+```
+
+## 5.
+### Now make some maps to explore differences in urban population and literacy across continents. Change to a different, projected coordinate system for these maps.
+
+```{r}
+# Project the data to a different coordinate system：Robinson projection
+combined_data_rob_proj <- st_transform(combined_data, "+proj=robin")
+
+# Plot urban population on a map
+ggplot() +
+  geom_sf(data = combined_data_rob_proj, aes(fill = urban_pop)) +
+  scale_fill_viridis_c() +
+  labs(title = "Urban Population Across Continents (Projected)") +
+  theme_minimal()
+
+# Plot literacy rate on a map
+ggplot() +
+  geom_sf(data = combined_data_rob_proj, aes(fill = literacy)) +
+  scale_fill_viridis_c() +
+  labs(title = "Literacy Rate Across Continents (Projected)") +
+  theme_minimal()
+
+```
