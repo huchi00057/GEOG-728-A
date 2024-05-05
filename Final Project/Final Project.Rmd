@@ -1,0 +1,448 @@
+---
+title: "Final Project"
+author: "WEI-XUAN HU"
+date: "2024-05-02"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning=FALSE)
+
+# There are some problems that I could not download the dataset successfully. Thus, we need to add this command.
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+# To make sure all outputs are english, rather than Mandarin.
+Sys.setenv(LANG = "en")
+```
+
+Table of contents
+
+1.  Introduction
+2.  Data Processing
+3.  Exploratory Analysis
+4.  Summary
+
+#  {.tabset}
+
+## 0. Packages
+
+### Install some packages needed in this project.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(sf)
+library(RColorBrewer)
+library(plotly)
+library(viridis)
+```
+
+## 1. Introduction
+
+Owning a car is helpful for living in the US due to its vast size. For international students, getting around can be challenging without a car, often relying on friends or public transportation. Buying a used car may offer a feasible solution due to its lower price. However, to choose a suitable used car that meets criteria such as affordability, acceptable condition, and age, comprehensive comparisons are necessary. Additionally, differences between states further complicate the decision-making process. Factors like climate variations, terrain ruggedness, and urban-rural divide also play significant roles in determining the ideal car for different regions. In summary, gaining a deeper understanding of the market and considering regional factors is essential for individuals unfamiliar with car ownership in the US.
+
+- Research Topic
+
+The research focuses on the challenges and considerations involved in purchasing a used car in the United States, particularly for international students.
+
+- Motivation
+
+The motivation behind this research stems from the recognition of the pivotal role cars play in navigating the vast expanse of the United States. International students, often without access to personal vehicles, face unique obstacles in transportation, which can significantly impact their mobility and overall experience in the country. By delving into the intricacies of used car ownership, we aim to provide valuable insights and guidance to help mitigate these challenges.
+
+- Goals
+
+    - To examine the feasibility of purchasing a used car as a solution for international students navigating transportation challenges in the US.
+    - To identify and analyze the key criteria, such as affordability, condition, age, and regional factors, that influence the selection of a suitable used car.
+    - To explore the variations in car ownership needs and preferences across different states, considering factors such as climate, terrain, and urban-rural disparities.
+    - To provide comprehensive comparisons and guidelines to assist international students and other individuals unfamiliar with car ownership in making informed decisions when purchasing a used car in the US.
+
+## 2. Data Processing
+
+Before importing the data, it is necessary to synchronize the input of various brands in Excel, as some original data entries for manufacturers are in full-width characters, and inconsistencies in capitalization may occur for some identical brands. Prior to data organization, there are 125 brand categories. Using the Replace function, the categories within the data were unified into 37 categories.
+
+In this project, there are four files to be imported, including: 
+
+- final_data.csv (used_car information)
+- GlobalLandTemperaturesByState.csv (temperature)
+- USA_Major_Cities.csv (big cities)
+- states.csv (abbreviation of states)
+
+
+1. final_data.csv (used_car information)
+```{r}
+used_car <- read.csv("final_data.csv")
+
+# Assessing Data
+head(used_car)
+dim(used_car)
+names(used_car)
+
+# make sure whether there is NA value in data.
+sum(is.na(used_car))
+
+used_car$year <- as.Date(paste0(used_car$year, "-01-01"))
+
+filtered_data <- used_car %>%
+  filter(year >= as.Date("2010-01-01") & year <= as.Date("2013-12-31") & state != "")
+
+str(filtered_data)
+summary(filtered_data)
+
+```
+
+
+```{r}
+options(repr.plot.width = 7, repr.plot.height = 4) 
+filtered_data %>% ggplot(aes(x = odometer, y = price)) +
+    geom_bin2d(bins=50)
+```
+
+Because there is two outliers, we need to remove it out.
+
+```{r}
+filtered_data <- filtered_data %>%
+  filter(odometer <= 800000)
+
+options(repr.plot.width = 7, repr.plot.height = 4) 
+filtered_data %>% ggplot(aes(x = odometer, y = price)) +
+    geom_bin2d(bins=50)
+```
+
+
+2. GlobalLandTemperaturesByState.csv (temperature)
+```{r} 
+data <- read.csv("GlobalLandTemperaturesByState.csv")
+
+summary(data)
+head(data)
+
+subset_data <- subset(data, Country == "United States")
+subset_data
+
+
+subset_data <- subset_data[complete.cases(subset_data$AverageTemperature), ]
+subset_data
+
+
+subset_data$dt <- as.Date(subset_data$dt)
+
+# filter data from 2010-2013
+filtered_data_temp <- subset(subset_data, dt >= as.Date("2010-01-01") & dt <= as.Date("2013-12-31"))
+
+# Only keep January data for each year
+filtered_data_temp <- subset(filtered_data_temp, format(dt, "%m") == "01")
+
+
+us_states <- spData::us_states
+
+merged_data_tmp <- merge(us_states, filtered_data_temp, by.x = "NAME", by.y = "State", all.x = TRUE)
+
+```
+
+
+3. USA_Major_Cities.csv (big cities)
+```{r}
+major_cities <- read.csv("USA_Major_Cities.csv")
+
+# Filter major cities based on longitude and latitude
+filtered_major_cities <- major_cities %>%
+  filter(X >= -130 & Y <= 50 & Y >= 22)
+
+filtered_city_sf <- st_as_sf(filtered_major_cities, coords = c("X", "Y"), crs = st_crs(us_states))
+
+merged_data <- st_join(us_states, filtered_city_sf)
+
+# Count the number of cities for each state
+city_counts <- merged_data %>%
+  group_by(NAME.x) %>%
+  summarize(number_of_cities = n())
+```
+
+
+4. states.csv (abbreviation of states)
+```{r}
+us_states <- spData::us_states
+
+abbreviate_states <- read.csv("states.csv")
+
+abbreviate_states$Abbreviation <- tolower(abbreviate_states$Abbreviation)
+
+with_states <- merge(filtered_data, abbreviate_states, by.x = "state", by.y = "Abbreviation", all.x = TRUE)
+
+
+## it should be placed in first part
+merged_data_used_car <- merge(us_states, with_states, by.x = "NAME", by.y = "State", all.x = TRUE)
+```
+
+## 3. Exploratory Analysis
+
+All variables except for price and odometer are categorical.
+
+```{r}
+price_hist <- plot_ly(nbinsx = 100) %>%
+  add_histogram(x = ~filtered_data$price, marker = list(color = 'rgba(55, 128, 191, 0.8)'), name = "Price $")
+
+odo_hist <- plot_ly(nbinsx = 50) %>%
+    add_histogram(x = ~filtered_data$odometer, marker = list(color = 'rgba(219, 64, 82, 0.8)'), name = "Odometer (miles)")
+
+fig <- subplot(price_hist, odo_hist) %>%
+    layout(title = "Odometer and Price Distribution", yaxis=list(title="Density"))
+fig
+```
+The histograms for both price and odometer display right-skewed distributions, indicating that vehicles with higher odometer readings are less frequently listed for sale, and similarly, cars with higher prices are less commonly available for purchase.
+
+
+```{r}
+by_manf = filtered_data %>% group_by(manufacturer) %>% count() %>% arrange(n)
+
+by_manf %>% plot_ly(x = ~n, y = ~manufacturer, type = "bar", marker = list(color = 'rgba(219, 64, 82, 0.9)')) %>%
+layout(title="Car Used by each manufacturer", xaxis=list(title="Cars"), 
+       yaxis=list(title="Manufacturer",  categoryorder = "array", categoryarray = ~n))
+```
+
+For this graph, it is obvious that Ford, Chevrolet, and BMW have the most vehicles.
+
+```{r}
+avg_ford = round(mean(filtered_data[filtered_data$manufacturer == "ford",]$price), 2)
+avg_chevrolet = round(mean(filtered_data[filtered_data$manufacturer == "chevrolet",]$price), 2)
+avg_bmw = round(mean(filtered_data[filtered_data$manufacturer == "bmw",]$price), 2)
+
+avg_honda = round(mean(filtered_data[filtered_data$manufacturer == "honda",]$price), 2)
+avg_toyota = round(mean(filtered_data[filtered_data$manufacturer == "toyota",]$price), 2)
+avg_nissan = round(mean(filtered_data[filtered_data$manufacturer == "nissan",]$price), 2)
+
+list(ford=avg_ford, chevrolet=avg_chevrolet, bmw=avg_bmw, honda=avg_honda, toyota=avg_toyota, nissan=avg_nissan)
+
+# Calculate the average price for each manufacturer
+avg_prices <- tapply(filtered_data$price, filtered_data$manufacturer, mean)
+
+avg_prices <- round(avg_prices, 2)
+
+avg_prices_df <- data.frame(manufacturer = names(avg_prices), avg_price = avg_prices)
+
+print(avg_prices_df)
+
+```
+
+From the data, we can observe that the top two brands are from the United States, while the third-ranked brand, BMW, is from Germany. The subsequent three brands are all from Japan. Additionally, Japanese brands have average prices approximately $5,000 lower than European and American brands.
+
+```{r}
+by_manf = filtered_data %>% group_by(manufacturer) %>% count() %>% arrange(n)
+
+by_manf %>% plot_ly(x = ~n, y = ~manufacturer, type = "bar", marker = list(color = 'rgba(219, 64, 82, 0.9)')) %>%
+layout(title="Car Used by each manufacturer", xaxis=list(title="Cars"), 
+       yaxis=list(title="Manufacturer",  categoryorder = "array", categoryarray = ~n))
+```
+
+```{r}
+by_type = used_car %>% group_by(type) %>% count() %>% arrange(n)
+
+by_type %>% plot_ly(x = ~n, y = ~type, type = "bar", marker = list(color = 'rgba(219, 64, 82, 0.9)')) %>%
+layout(title="Car Used by each type", xaxis=list(title="Cars"), 
+       yaxis=list(title="Type",  categoryorder = "array", categoryarray = ~n))
+
+```
+
+```{r}
+by_drive = group_by(filtered_data, drive) %>% count(.) %>% drop_na(.)
+by_drive = mutate(by_drive, ratio =n/sum(by_drive$n))
+
+
+plot_ly(by_drive, labels = ~drive, values = ~ratio, type = 'pie', marker = list(line = list(color = '#FFFFFF', width = 3))) %>% 
+  layout(title = 'Car Drive Type',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+```
+
+From the diagram, we can find that fwd drive type are the most common  with 61.7% over half percentage.
+
+```{r}
+options(repr.plot.width = 7, repr.plot.height = 4) 
+filtered_data %>% ggplot(aes(x = odometer, y = price)) +
+    geom_bin2d(bins=50)
+```
+
+From the above chart, we can observe that the popular odometer is around 100,000. And, there appears to be a negative relationship between the mileage of a car and its price. This is not surprising, as cars with lower mileage typically command higher prices.
+
+
+```{r}
+
+avg_by_manuf = aggregate(price ~ manufacturer, data = filtered_data, FUN=mean, na.rm = TRUE) %>% arrange(price)
+plot_ly(x = ~avg_by_manuf$price,y = ~avg_by_manuf$manufacturer, name = "Car Used by each manufacturer",type = "bar",
+   marker = list(color = 'rgba(219, 64, 82, 0.8)'),
+) %>% layout(title = "Average Price for each Manufacturer", xaxis=list(title="Average Price"), 
+             yaxis=list(title="Manufacturer",  categoryorder = "array", categoryarray = ~avg_by_manuf$price))
+
+```
+
+Observing the top six best-selling manufacturers mentioned earlier, we can see that the prices for Ford, Chevrolet, and BMW cars are approximately in the range of 14-15k, while the prices for Honda, Toyota, and Nissan cars fall around 8.4-9k. From this, we can infer that these two price ranges are desirable in the market, and consumers are willing to pay for cars within these price ranges.
+
+
+```{r}
+major_cities <- read.csv("USA_Major_Cities.csv")
+
+# Filter major cities based on longitude and latitude
+filtered_major_cities <- major_cities %>%
+  filter(X >= -130 & Y <= 50 & Y >= 22)
+
+filtered_city_sf <- st_as_sf(filtered_major_cities, coords = c("X", "Y"), crs = st_crs(us_states))
+
+merged_data <- st_join(us_states, filtered_city_sf)
+
+# Plot the US map with filtered cities as points
+ggplot() +
+  geom_sf(data = merged_data, fill = "lightblue", color = "black") +  # US states
+  geom_sf(data = filtered_city_sf, color = "red", size = 0.5) +  # Filtered cities as points
+  theme_minimal() +
+  labs(title = "Cities on US Map")
+```
+
+
+## 4. Research Questions
+
+
+1. What are the most popular makes of used cars in the dataset, and do their prices vary significantly by region?
+
+```{r}
+
+by_state_manufacturer <- merged_data_used_car %>%
+  group_by(state, manufacturer) %>%
+  count()
+
+top_manufacturer_by_state <- by_state_manufacturer %>%
+  arrange(state, desc(n)) %>%
+  group_by(state) %>%
+  slice(1)
+
+print(top_manufacturer_by_state)
+
+average_price_by_state <- merged_data_used_car %>%
+  group_by(NAME, state) %>%
+  summarize(average_price = round(mean(price, na.rm = TRUE)),
+            geometry = geometry)
+
+ggplot(top_manufacturer_by_state) +
+  geom_sf(aes(fill = manufacturer)) +
+  geom_sf_text(data = average_price_by_state, aes(label = average_price, geometry = geometry), size = 3) +
+  scale_fill_viridis_d(name = "Manufacturer") + 
+  labs(title = "Top Manufacturer by State")
+
+```
+
+
+As seen from the exploratory analysis in the previous section, we found that Ford, Chevrolet, and BMW are among the most popular vehicle manufacturers. Based on the summary of `filtered_data`, the mean price is $13,126, with the third quartile at $18,373. This suggests that residents who prefer to purchase luxury cars like BMW tend to reside in states with higher average car prices. Conversely, if the average car price in a state is lower, it is more likely that residents lean towards purchasing domestic brands like Ford. The region where Volvo sells best is Arkansas, where the average car price is the lowest among states, just slightly higher than the first quartile at $6,430, with an average price of $8,294. Furthermore, from a geographical perspective, this project speculates that areas with dry and low-temperature climates are more inclined towards European brands like BMW. This is because the climate in those areas resembles that of inland European countries, which is conducive to the use of automobiles.
+
+
+```{r}
+by_state_type <- merged_data_used_car %>%
+  group_by(state, type) %>%
+  count()
+
+top_type_by_state <- by_state_type %>%
+  arrange(state, desc(n)) %>%
+  group_by(state) %>%
+  slice(1)
+
+print(top_type_by_state)
+
+
+ggplot(top_type_by_state) +
+  geom_sf(aes(fill = type)) +
+  scale_fill_viridis_d(name = "Type") + 
+  labs(title = "Top Type by State")
+
+```
+
+
+States with significant mountain ranges include Colorado, California, Washington, Oregon, Montana, and Wyoming. From the data presented, it is evident that many of the regions where SUVs are preferred are characterized by abundant mountainous terrain. Additionally, Kentucky, Tennessee, North Carolina, and South Carolina stand out for their notable preference for SUVs, driven by several factors. These states feature diverse landscapes encompassing mountains, hills, and plains, making SUVs an appealing choice due to their higher ground clearance and four-wheel drive capabilities, which are well-suited for navigating varied road conditions. Furthermore, the prevalence of outdoor recreational activities such as hiking, camping, and fishing in these regions enhances the desirability of SUVs, known for their spacious interiors and off-road performance. Moreover, the humid climates and seasonal extreme weather conditions in these states underscore the importance of SUVs, providing stability and safety for drivers facing challenging weather conditions. Additionally, the presence of rural areas within these states necessitates vehicles capable of traversing uneven and muddy rural roads, further fueling the demand for SUVs among residents.
+
+
+2. Do regions with high latitude and low temperatures prefer certain brands or types?
+
+```{r}
+ggplot() +
+  geom_sf(data = merged_data_tmp, aes(fill = AverageTemperature)) +
+  geom_sf_text(data = top_manufacturer_by_state, aes(label = manufacturer, geometry = geometry), size = 2.5) +
+  scale_fill_viridis() +  # 使用 viridis 调色板
+  theme_minimal() +
+  labs(title = "Average Temperature by State")
+
+```
+
+
+From the average temperature by state chart, it's evident that the average January temperatures tend to decrease as you move further north. Conversely, regions located more towards the south and closer to the coast experience relatively higher temperatures, notably Florida. However, upon closer inspection, it becomes apparent that the most popular car brands do not show a clear correlation with the temperature of the region. Ford remains the top-selling brand in most states, with a few states showing preferences for BMW, Volvo, or Chevrolet. Interestingly, among these states, there are no significant common geographical features.
+
+3. Does the quantity and density of major cities have an impact on the prices of used cars?
+
+```{r}
+
+# caluculate the density from states
+city_counts <- city_counts %>%
+  mutate(state_area = st_area(geometry)) %>%
+  mutate(city_density = number_of_cities / state_area)
+
+city_counts$city_density <- as.numeric(city_counts$city_density)
+
+city_density_data <- city_counts[, c("NAME.x", "city_density")]
+
+us_states <- us_states %>% st_join(city_density_data)
+
+# quantity
+ggplot() +
+  geom_sf(data = us_states, aes(fill = city_density), color = "black") +
+  #geom_sf_text(data = city_counts, aes(label = number_of_cities, geometry = geometry), size = 3) +  
+  #geom_sf_text(data = top_manufacturer_by_state, aes(label = manufacturer, geometry = geometry), size = 2.5) +
+  geom_sf_text(data = average_price_by_state, aes(label = average_price, geometry = geometry), size = 1.5) +
+  scale_fill_viridis_c() +  
+  theme_minimal() +
+  labs(title = "City Quantity by State")
+
+
+# density
+ggplot() +
+  geom_sf(data = city_counts, aes(fill = city_density), color = "black") +
+  #geom_sf_text(data = top_manufacturer_by_state, aes(label = manufacturer, geometry = geometry), size = 2.5) +
+  geom_sf_text(data = average_price_by_state, aes(label = average_price, geometry = geometry), size = 1.5) +
+  scale_fill_viridis_c() +  
+  theme_minimal() +
+  labs(title = "City Density by State")
+
+
+```
+In theory, the more numerous the big cities in a state, the more developed and well-constructed it is, leading people to rely less on personal vehicle ownership and more on public transportation. Looking at states like California and New York, the average car price is around $13,000. Especially on the East Coast, excluding the capital city areas, including New York, Delaware, New Jersey, Maryland, and Connecticut. However, in other regions, based on the average car price, there does appear to be a positive correlation between the quantity of cities and the average price.
+
+## 5. Summary
+### Summary
+
+In this project, we investigated various factors influencing the purchase of used cars in the United States, with a particular focus on the considerations for international students. The exploration involved data processing, exploratory analysis, and addressing specific research questions.
+
+### Data Processing
+
+We began by importing and processing several datasets related to used car information, temperature, major cities, and state abbreviations. The datasets were cleaned, filtered, and merged to create a comprehensive dataset for analysis.
+
+### Exploratory Analysis
+
+The exploratory analysis encompassed visualizations and statistical summaries to gain insights into the dataset:
+
+  1. **Popular Car Manufacturers**: We identified the most popular car manufacturers, with Ford, Chevrolet, and BMW emerging as the top contenders. Japanese brands such as Honda, Toyota, and Nissan also had a significant presence in the market.
+  
+  2. **Price Distribution and Odometer Mileage**: Histograms were utilized to visualize the distribution of car prices and odometer mileage. The data indicated right-skewed distributions for both variables, suggesting that cars with higher prices and lower mileage were less frequently listed for sale.
+  
+  3. **Average Price by Manufacturer**: We calculated the average prices for different car manufacturers, revealing varying price ranges across brands. European and American brands like Ford, Chevrolet, and BMW had higher average prices compared to Japanese brands like Honda, Toyota, and Nissan.
+  
+  4. **Car Type Preference**: Analysis of car type preferences indicated that front-wheel drive (fwd) vehicles were the most common, followed by rear-wheel drive (rwd) and four-wheel drive (4wd) options.
+  
+  5. **Geographical Preferences**: Geographical analysis revealed regional preferences for certain car types and manufacturers. States with significant mountain ranges tended to prefer SUVs, while other factors such as climate and terrain also influenced car preferences.
+  
+  6. **Average Temperature by State**: The relationship between car preferences and average temperatures by state was explored, revealing that temperature variations did not necessarily correlate with the popularity of specific car brands.
+  
+  7. **City Quantity and Density**: Analysis of city quantity and density suggested a positive correlation between the number of major cities and the average price of used cars. States with higher city densities tended to have higher average car prices.
+
+### Research Questions
+
+Finally, specific research questions were addressed, including the impact of geographical factors on car preferences, the influence of temperature on brand selection, and the relationship between city quantity/density and car prices.
+
+In summary, this project provides valuable insights into the complexities of purchasing used cars in the United States, offering guidance for international students and other individuals navigating the car market in the country. Further research could delve deeper into specific regional preferences and factors influencing car ownership decisions.
